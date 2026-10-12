@@ -18,10 +18,11 @@
 <!-- New section -->
 ## 🖥️ Simulate in Wokwi
 
-Wokwi simulates the <CHIP> and runs the compiled firmware. It can't compile ESP-IDF in the browser, so you give it the `.bin` built by `idf.py` or CI.
+**[▶ Open the Wokwi project](https://wokwi.com/projects/<PROJECT_ID>)** and press the green ▶ button (the first build can take a minute or two on Wokwi's free servers). <How to interact, e.g. click BOOT to switch modes.>
 
-- **Browser:** open the [**Wokwi project**](https://wokwi.com/projects/<PROJECT_ID>), download `<PROJECT>-merged.bin` from the [latest release](https://github.com/<USER>/<REPO>/releases/latest) (or, for the newest commit, from the `<ARTIFACT>` artifact of a [CI run](https://github.com/<USER>/<REPO>/actions) — needs a GitHub login, unzip it first), click in the code editor, press **F1 → Upload Firmware and Start Simulation…** and pick the file.
-- **VS Code:** install the *Wokwi Simulator* extension, run `idf.py build`, then *Wokwi: Start Simulator* ([`wokwi.toml`](wokwi.toml) points it at the build, [`diagram.json`](diagram.json) holds the circuit).
+The Wokwi project runs this repo's own C code. Wokwi compiles ESP-IDF code with the Arduino ESP32 core, so [`wokwi/`](wokwi) has a few small Wokwi-only files <list them>. The `ESP_LOGI` messages don't appear in Wokwi's serial monitor.
+
+- **VS Code:** install the *Wokwi Simulator* extension, run `idf.py build`, then *Wokwi: Start Simulator* — this runs the real firmware ([`wokwi.toml`](wokwi.toml) points to the build, [`diagram.json`](diagram.json) holds the circuit).
 
 <Board differences, e.g.: Wokwi's DevKitC-1 has its RGB LED on GPIO38 and no clickable Boot button, so the diagram adds a NeoPixel on **GPIO48** and a button on **GPIO0** to match this board.>
 <Simulator quirks that affect this project, e.g. LED smoothing hiding flashes shorter than ~100 ms.>

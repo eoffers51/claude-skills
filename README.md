@@ -4,9 +4,9 @@ Reusable [Claude Code](https://claude.com/claude-code) skills from Beetroot Acad
 
 | Plugin | What it does |
 |---|---|
-| [`wiring-docs`](plugins/wiring-docs/skills/wiring-docs/SKILL.md) | Reads the pins from your code and makes **a wiring picture for the README** (`docs/wiring.svg`) and **a Wokwi simulator project** (`diagram.json`, `wokwi.toml`). It saves the project on wokwi.com, tests it with your own firmware and adds a "Simulate" badge to the README. |
+| [`wiring-docs`](plugins/wiring-docs/skills/wiring-docs/SKILL.md) | Reads the pins from your code and makes **a wiring picture for the README** (`docs/wiring.svg`) and **a Wokwi simulator project** (`diagram.json`, `wokwi.toml`). It puts your code in a wokwi.com project that runs when anyone presses ▶, tests every mode and adds a "Simulate" badge to the README. |
 
-Example result: [Lesson 1.3 — Police siren](https://github.com/eoffers51/Lesson_1_3_Blink#-wiring) · [its Wokwi project](https://wokwi.com/projects/477673393523940353)
+Example result: [Lesson 1.3 — Police siren](https://github.com/eoffers51/Lesson_1_3_Blink#-wiring) · [its Wokwi project](https://wokwi.com/projects/477675527233048577)
 
 ![Example wiring picture](plugins/wiring-docs/skills/wiring-docs/templates/wiring-example.svg)
 
@@ -46,7 +46,7 @@ Claude will:
 1. read the pins from your code and ask about the things the code can't show (resistor values, LED polarity, which parts are on the board);
 2. show you a wiring table to confirm;
 3. draw `docs/wiring.svg` and make `diagram.json` + `wokwi.toml`;
-4. (if you have [Claude in Chrome](https://claude.com/chrome) and are signed in to [wokwi.com](https://wokwi.com)) build the circuit on wokwi.com, upload your firmware, test every mode, and **ask you** before saving it (free plan = public project);
+4. (if you have [Claude in Chrome](https://claude.com/chrome) and are signed in to [wokwi.com](https://wokwi.com)) build the circuit on wokwi.com, upload your source code (plus tiny Wokwi-only files in `wokwi/` for ESP-IDF projects), press ▶, test every mode, and **ask you** before saving it (free plan = public project);
 5. update the README.
 
 ### Requirements
@@ -54,7 +54,7 @@ Claude will:
 - Claude Code
 - Git Bash on Windows (or any bash on macOS/Linux), `curl`, Python 3, and Chrome or Edge (used to check the SVG picture)
 - For the online simulator: a free [wokwi.com](https://wokwi.com) account and the Claude in Chrome extension
-- ESP-IDF projects: `idf.py build merge-bin` (or a CI build) to get the firmware `.bin`
+- ESP-IDF projects: nothing extra for wokwi.com (it compiles your code); `idf.py build` only for the VS Code simulator
 
 ## 🗂️ Layout
 

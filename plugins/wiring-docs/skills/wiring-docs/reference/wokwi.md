@@ -76,6 +76,19 @@ HTMLInputElement.prototype.click = function () {
 ```
 Then: click in the code editor, press `F1`, type `Upload Firmware`, `Return`; `find` "file input" → `file_upload` with the `.bin` path. Remove `window.__fw` from `document.body` afterwards (it shifts the layout). Hooks are lost on reload: re-run before each upload.
 
+**Upload source files** (the way to make a shared project run on ▶): with the hook installed, open the file menu (the ▾ button after the last file tab) → *Upload file(s)…*; the hooked input has `multiple=true` and accepts `.c .h .cpp .ino .json ...`. `find` "file input" → `file_upload` with all paths at once. Files land flat (`siren.h`, not `include/siren.h`), which matches `#include "siren.h"`.
+
+**List the project's files** (check after upload and after a reload of the saved project):
+```js
+[...document.querySelectorAll('button')].map(e => e.innerText.trim()).filter(t => /\.(c|h|ino|cpp|json)$/.test(t))
+```
+
+**Wait for a build**: after ▶, the panel says "Compiling project…" (free queue: 1–3 min). Poll with screenshots/short waits, not one long JS call (calls time out after ~45 s). Outcomes: simulation running; a "Build failed!" dialog (read `document.body.innerText` lines with `error|multiple|undefined`); or "Build Servers Busy" (server load: close it and press ▶ again).
+
+Known compile/link errors on wokwi.com (Arduino ESP32 core 3.x):
+- `multiple definition of 'app_main'` → rename ours with `#define app_main <name>_app_main` in the uploaded main.c and call it from `sketch.ino` `setup()`.
+- `led_strip.h: No such file` (or any registry component) → Wokwi-only replacement file with the same header API.
+
 **Press a button**:
 ```js
 const press = async (id) => { const el = document.getElementById(id) || document.querySelector('wokwi-pushbutton');

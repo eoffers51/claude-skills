@@ -1,6 +1,6 @@
 ---
 name: wiring-docs
-description: Document the real wiring of an ESP32 / microcontroller project - draw an accurate wiring picture (docs/wiring.svg) for the README, generate a Wokwi simulator circuit (diagram.json + wokwi.toml) from the pins in the code, publish and test it on wokwi.com with the project's own firmware, and add a "Simulate" badge and section to the README. Use when the user asks for a wiring diagram, schematic, circuit picture, "how it's connected" in the README, a Wokwi / online simulator link, or to simulate their board project.
+description: Document the real wiring of an ESP32 / microcontroller project - draw an accurate wiring picture (docs/wiring.svg) for the README, generate a Wokwi simulator circuit (diagram.json + wokwi.toml) from the pins in the code, publish it on wokwi.com as a project that runs the repo's own code on one click (and test every mode), and add a "Simulate" badge and section to the README. Use when the user asks for a wiring diagram, schematic, circuit picture, "how it's connected" in the README, a Wokwi / online simulator link, or to simulate their board project.
 ---
 
 # Wiring docs + Wokwi simulator
@@ -11,7 +11,8 @@ Turns "what's wired where" into three things that stay in the repo:
 |---|---|
 | `docs/wiring.svg` | Hand-drawn SVG picture of the real wiring, shown in the README |
 | `diagram.json` + `wokwi.toml` | The same circuit for the [Wokwi](https://wokwi.com) simulator (VS Code extension or wokwi.com) |
-| README section + badge | Picture, link to the saved Wokwi project, how to load the firmware |
+| `wokwi/` | Wokwi-only glue files so the repo's code compiles on wokwi.com (Arduino-core build) |
+| README section + badge | Picture and a link to a saved Wokwi project that runs on ▶ |
 
 Proven on ESP-IDF v6 / ESP32-S3-DevKitC-1, but the steps work for any board Wokwi supports (ESP32, ESP32-C3/C6/S2/S3, Pico, Arduino...).
 
@@ -59,23 +60,29 @@ Then Read the PNG and fix overlaps. In the README, put the picture under the wir
 
 Needs Claude in Chrome (or the built-in browser) and the user signed in to wokwi.com. Read `reference/wokwi.md` → "Browser automation" for the exact JS snippets.
 
-1. **Firmware**: wokwi.com cannot compile ESP-IDF (its online compiler is Arduino only). It runs a binary you upload:
-   - ESP-IDF: `idf.py build merge-bin` → `build/merged-binary.bin`, or the CI artifact / release `*-merged.bin` (`gh run download <id> -n <artifact>` puts it under `build/`).
-   - Arduino projects can paste the sketch instead.
-   - The browser's file-upload tool only reads files inside the session's folders: the `.bin` must be inside the project (e.g. `build/`); copy it there if it lives elsewhere.
-2. Open `https://wokwi.com/projects/new/<board>` (e.g. `esp32-s3`), **click the `diagram.json` tab first** (its Monaco model only exists after the tab was opened once), set it through the model (`vfs:diagram.json`), screenshot, and fix the layout until no wire runs across a part.
-3. Replace `sketch.ino` with a comment: link to the GitHub repo, "ESP-IDF can't be compiled here: press F1 → Upload Firmware and Start Simulation… and pick `<name>-merged.bin` from the latest release". Otherwise pressing ▶ runs the default Arduino blink.
-4. Upload the firmware (F1 → "Upload Firmware and Start Simulation…"). Install the file-input hook first, **in its own JS call, and check it returned** (`HTMLInputElement.prototype.click.toString().includes('__fw')`); if it isn't installed, F1 opens the native Windows/macOS file dialog, which the browser tools can't close (ask the user to close it). See reference. and **test every mode** by reading part state from JS (`wokwi-led.value/brightness`, `wokwi-neopixel.r/g/b`, serial log text) and pressing buttons with mouse events. Report what passed.
-5. **Ask before saving** (it publishes): name the project; on the free plan only **Public** works (Unlisted needs a paid plan). After saving, reload the URL and check the diagram and note survived. The uploaded firmware is *not* saved with the project; everyone uploads it once.
+**Goal: the shared link must run on ▶ with no upload.** An uploaded `.bin` is *not* saved with a Wokwi project, so a project that needs one looks broken to everyone who opens the README link. Put the project's **source code** in the Wokwi project instead:
+
+1. **Make the code compile on wokwi.com.** Wokwi builds ESP-IDF code with the **Arduino ESP32 core** (3.x, on ESP-IDF 5.x). Plain ESP-IDF APIs (`driver/gpio.h`, FreeRTOS, `esp_log.h`, `esp_err.h`) work unchanged. Two things don't, so add Wokwi-only files in a repo folder `wokwi/` (templates in `templates/wokwi/`):
+   - **`app_main` clash**: the core already defines `app_main()` → link error "multiple definition of `app_main`". Upload a copy of `main/main.c` with `#define app_main <project>_app_main` as its first code line (generate it under `build/`, which is git-ignored, don't commit a second main.c), plus `sketch.ino` whose `setup()` calls `<project>_app_main()` (`extern "C"`).
+   - **Registry components** (`managed_components/`, e.g. `espressif/led_strip`) aren't available. Write a Wokwi-only `.c` with the same header API using core functions (WS2812: `rgbLedWrite(pin, r, g, b)`; see `templates/wokwi/led.c`).
+   - Also: `ESP_LOGI` output is hidden (Arduino log level), so don't rely on log lines in Wokwi. Read LED state instead. Mention this in the README.
+   - Arduino projects: just use the sketch and its files.
+2. **Build the project in the browser**: open `https://wokwi.com/projects/new/<board>` (e.g. `esp32-s3`). **Click the `diagram.json` tab first** (its Monaco model only exists after it's been opened), then set `diagram.json` and `sketch.ino` through their models. **Never rename** the default `sketch.ino`: a renamed file keeps the old model, and a new file with the old name then wipes it (Wokwi bug).
+3. **Add the source files**: file menu ▾ → *Upload file(s)…* takes many files at once (flat names: `components/x/include/x.h` → `x.h`). Install the file-input hook first (see reference), then use the file-upload tool. It can only read files inside the session's folders.
+4. **Press ▶ and test every mode** by reading part state from JS (`wokwi-led.value`, `wokwi-neopixel.r/g/b`) and pressing buttons with mouse events. The free build queue can take 1–3 min, and "Build Servers Busy" means retry (save first so nothing is lost), not a code error. A compile error shows in a "Build failed!" dialog; read it with `document.body.innerText`.
+5. **Ask before saving** (it publishes): on the free plan only **Public** works (Unlisted needs a paid plan). After saving, reload the URL and check that every file is there.
+6. **Optional, the real firmware**: F1 → "Upload Firmware and Start Simulation…" runs a `.bin` (`idf.py build merge-bin` → `build/merged-binary.bin`, or a CI artifact / release) for a one-off check. Good for testing, useless for sharing.
+7. If the user wants an old Wokwi project deleted, they do it themselves (dashboard → ⋮ → Delete). Closing a tab with unsaved Wokwi changes shows a native "Leave site?" prompt the browser tools can't click: save or ask the user.
 
 ## 5. README
 
-Use `templates/readme-section.md`: a `simulate-Wokwi` badge next to the other badges, the picture, and a "Simulate in Wokwi" section (browser steps with the release link, VS Code steps, board differences, simulator quirks). Then commit (only when asked) and check the rendered README on GitHub.
+Use `templates/readme-section.md`: a `simulate-Wokwi` badge next to the other badges, the picture, and a "Simulate in Wokwi" section ("open and press ▶", what `wokwi/` contains, VS Code steps, board differences, simulator quirks). Add `templates/wokwi/README.md` as `wokwi/README.md` (which Wokwi file comes from where, how to re-sync after code changes). Then commit (only when asked) and check the rendered README on GitHub.
 
 ## Wokwi gotchas (check these before reporting a "bug")
 
 - **LED smoothing**: Wokwi blends LED brightness over ~100 ms, so on/off gaps shorter than that (e.g. a 60 ms double flash) look like one flash. Measure the period from `led.value` changes instead; the firmware is usually fine.
 - **Floating pin**: a GPIO switched to input really leaves LEDs dark (tri-state tricks work).
-- `wokwi.toml` with `flasher_args.json` needs `idf.py build` first; the merged bin for wokwi.com needs `idf.py merge-bin`.
+- `wokwi.toml` with `flasher_args.json` needs `idf.py build` first; a merged bin for a one-off upload needs `idf.py merge-bin`.
+- Shared project "does nothing" on ▶: it has no source (only a placeholder sketch). Firmware uploads aren't saved; put the code in the project (step 4).
 - Default flash in Wokwi is 4 MB; set `"attrs": {"flashSize": "16"}` on the board if the app needs more.
 - USB-Serial-JTAG console: set `"serialInterface": "USB_SERIAL_JTAG"` on the board and drop the `$serialMonitor` connections.
