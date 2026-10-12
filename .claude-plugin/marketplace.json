@@ -3,7 +3,7 @@
   "owner": { "name": "eoffers51" },
   "metadata": {
     "description": "Claude Code skills for Beetroot Academy ESP32 / ESP-IDF projects",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "plugins": [
     {

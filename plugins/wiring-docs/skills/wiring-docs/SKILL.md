@@ -18,12 +18,12 @@ Proven on ESP-IDF v6 / ESP32-S3-DevKitC-1, but the steps work for any board Wokw
 ## 1. Collect the real wiring (don't guess)
 
 1. Read the code: pin `#define`s in `main/`, `gpio_config` / `pinMode` calls, component `include/*.h` comments, `CLAUDE.md`, `README.md`, `TASK.md`.
-2. Things the code can't tell you, ask the user once (one AskUserQuestion with all of them): resistor values, LED polarity / which side goes to GND or 3V3, external vs onboard parts, button wiring (to GND with pull-up?), anything shared on one pin.
+2. Things the code can't tell you, ask the user once (one AskUserQuestion with all of them): **exact board model / revision** (the code only shows the chip, e.g. `esp32s3`; clones differ, e.g. RGB LED on GPIO48 vs 38), resistor values, LED polarity / which side goes to GND or 3V3, external vs onboard parts, button wiring (to GND with pull-up?), anything shared on one pin.
 3. Write a **wiring table** (part, pin, path to GND/3V3, active level) and confirm it before drawing. Everything below is generated from this table, so the picture, the simulator and the code must all agree.
 
 ## 2. Draw `docs/wiring.svg`
 
-Start from `templates/wiring-example.svg` (ESP32-S3-DevKitC-1 with 3 LEDs, onboard RGB, BOOT button) and adapt it:
+Start from `templates/wiring-example.svg` (ESP32-S3-DevKitC-1 with 3 LEDs, onboard RGB, BOOT button) and adapt it. Every block is marked with an XML comment (`Board`, `used pins highlighted`, `Wires`, `Resistors`, `LEDs`, `Callouts`, truth table): delete what the project doesn't use, and when a pin stops being highlighted put its dim label back in the header row. For another board, redraw the board block from the header order.
 
 - Draw the **whole headers in real order** with real labels so a student can count pins on the physical board; highlight only the used pins (gold square + bold white label, no duplicate dim label underneath).
   Header order for the board: from the board's official user guide, or the Wokwi board definition (step 3).
@@ -62,9 +62,10 @@ Needs Claude in Chrome (or the built-in browser) and the user signed in to wokwi
 1. **Firmware**: wokwi.com cannot compile ESP-IDF (its online compiler is Arduino only). It runs a binary you upload:
    - ESP-IDF: `idf.py build merge-bin` → `build/merged-binary.bin`, or the CI artifact / release `*-merged.bin` (`gh run download <id> -n <artifact>` puts it under `build/`).
    - Arduino projects can paste the sketch instead.
-2. Open `https://wokwi.com/projects/new/<board>` (e.g. `esp32-s3`), set `diagram.json` through the Monaco model (`vfs:diagram.json`), screenshot, and fix the layout until no wire runs across a part.
+   - The browser's file-upload tool only reads files inside the session's folders: the `.bin` must be inside the project (e.g. `build/`); copy it there if it lives elsewhere.
+2. Open `https://wokwi.com/projects/new/<board>` (e.g. `esp32-s3`), **click the `diagram.json` tab first** (its Monaco model only exists after the tab was opened once), set it through the model (`vfs:diagram.json`), screenshot, and fix the layout until no wire runs across a part.
 3. Replace `sketch.ino` with a comment: link to the GitHub repo, "ESP-IDF can't be compiled here: press F1 → Upload Firmware and Start Simulation… and pick `<name>-merged.bin` from the latest release". Otherwise pressing ▶ runs the default Arduino blink.
-4. Upload the firmware (F1 → "Upload Firmware and Start Simulation…" - hook the hidden file input first, see reference) and **test every mode** by reading part state from JS (`wokwi-led.value/brightness`, `wokwi-neopixel.r/g/b`, serial log text) and pressing buttons with mouse events. Report what passed.
+4. Upload the firmware (F1 → "Upload Firmware and Start Simulation…"). Install the file-input hook first, **in its own JS call, and check it returned** (`HTMLInputElement.prototype.click.toString().includes('__fw')`); if it isn't installed, F1 opens the native Windows/macOS file dialog, which the browser tools can't close (ask the user to close it). See reference. and **test every mode** by reading part state from JS (`wokwi-led.value/brightness`, `wokwi-neopixel.r/g/b`, serial log text) and pressing buttons with mouse events. Report what passed.
 5. **Ask before saving** (it publishes): name the project; on the free plan only **Public** works (Unlisted needs a paid plan). After saving, reload the URL and check the diagram and note survived. The uploaded firmware is *not* saved with the project; everyone uploads it once.
 
 ## 5. README
