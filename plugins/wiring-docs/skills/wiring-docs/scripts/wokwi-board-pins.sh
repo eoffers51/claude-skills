@@ -15,9 +15,11 @@ if [ "${1:-}" = "--list" ] || [ -z "${1:-}" ]; then
 fi
 
 curl -fsSL "$base/$1/board.json" | "$py" -c "
-import json, sys
-d = json.load(sys.stdin)
-print('part type :', 'board-' + sys.argv[1])
+import json, re, sys
+# Some board files are JSON5: drop /* */ and // comments and trailing commas
+text = re.sub(r'(\"(?:\\\\.|[^\"\\\\])*\")|//[^\n]*|/\*.*?\*/', lambda m: m.group(1) or '', sys.stdin.read(), flags=re.S)
+d = json.loads(re.sub(r',(\s*[}\]])', r'\1', text))
+print('part type :', 'board-' + sys.argv[1], '(a few classic boards use wokwi-<name> instead, e.g. wokwi-esp32-devkit-v1: check by adding it on wokwi.com)')
 print('name      :', d.get('name'), '| mcu:', d.get('mcu'))
 pins = d.get('pins', {})
 print('pins      :', ' '.join(pins))
