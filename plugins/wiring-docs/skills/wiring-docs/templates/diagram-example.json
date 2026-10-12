@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "author": "eoffers51",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-s3-devkitc-1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-resistor", "id": "r_green", "top": 23.3, "left": -88.8, "attrs": { "value": "220" } },
+    { "type": "wokwi-led", "id": "led_green", "top": -13, "left": -135, "attrs": { "color": "green", "label": "green" } },
+    { "type": "wokwi-resistor", "id": "r_blue", "top": 94.3, "left": -98.8, "attrs": { "value": "220" } },
+    { "type": "wokwi-led", "id": "led_blue", "top": 58, "left": -160, "attrs": { "color": "blue", "label": "blue" } },
+    { "type": "wokwi-resistor", "id": "r_red", "top": 157.7, "left": -88.8, "attrs": { "value": "220" } },
+    { "type": "wokwi-led", "id": "led_red", "top": 121.4, "left": -125, "attrs": { "color": "red", "label": "red" } },
+    { "type": "wokwi-neopixel", "id": "rgb", "top": 159, "left": 200, "rotate": 180, "attrs": {} },
+    { "type": "wokwi-pushbutton", "id": "btn_boot", "top": 121.8, "left": 130, "attrs": { "color": "black", "label": "BOOT" } }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "esp:3V3.1", "r_green:2", "red", [] ],
+    [ "r_green:1", "led_green:A", "green", [] ],
+    [ "led_green:C", "esp:8", "green", [ "v11", "h100", "v94.6" ] ],
+    [ "esp:8", "r_blue:2", "blue", [ "h-25.1", "v-34.6" ] ],
+    [ "r_blue:1", "led_blue:A", "blue", [] ],
+    [ "led_blue:C", "esp:GND.1", "black", [ "v150", "h140", "v-19.4" ] ],
+    [ "esp:9", "r_red:2", "orange", [] ],
+    [ "r_red:1", "led_red:A", "orange", [] ],
+    [ "led_red:C", "esp:GND.1", "black", [ "v86.6", "h105", "v-19.4" ] ],
+    [ "esp:48", "rgb:DIN", "violet", [] ],
+    [ "esp:0", "btn_boot:2.l", "gray", [] ],
+    [ "btn_boot:1.l", "esp:GND.2", "black", [ "h-20", "v-105.8" ] ]
+  ],
+  "dependencies": {}
+}

@@ -1,0 +1,9 @@
+{
+  "name": "wiring-docs",
+  "description": "Accurate wiring picture (SVG) for the README plus a tested Wokwi simulator project, generated from the pins in your ESP32 code.",
+  "version": "1.0.0",
+  "author": { "name": "eoffers51" },
+  "repository": "https://github.com/eoffers51/claude-skills",
+  "license": "MIT",
+  "keywords": ["esp32", "esp-idf", "wokwi", "wiring", "schematic", "readme"]
+}

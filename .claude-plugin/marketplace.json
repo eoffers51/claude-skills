@@ -1,0 +1,15 @@
+{
+  "name": "beetroot-esp32",
+  "owner": { "name": "eoffers51" },
+  "metadata": {
+    "description": "Claude Code skills for Beetroot Academy ESP32 / ESP-IDF projects",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "wiring-docs",
+      "source": "./plugins/wiring-docs",
+      "description": "Wiring picture for the README + Wokwi simulator project, generated from the pins in your code and tested with your firmware."
+    }
+  ]
+}
