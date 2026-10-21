@@ -1,0 +1,9 @@
+{
+  "name": "guided-learning",
+  "description": "A coach for course task lists: visual explainers, hint ladder instead of ready answers, debugging coaching, control questions one at a time, and a task checker against each task's \"Verified result\".",
+  "version": "1.0.0",
+  "author": { "name": "eoffers51" },
+  "repository": "https://github.com/eoffers51/claude-skills",
+  "license": "MIT",
+  "keywords": ["learning", "teaching", "coaching", "course", "esp32", "embedded"]
+}
