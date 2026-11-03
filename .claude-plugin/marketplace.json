@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Claude Code skills for Beetroot Academy ESP32 / ESP-IDF projects",
-    "version": "1.2.0"
+    "version": "1.3.0"
   },
   "plugins": [
     {
@@ -17,6 +17,11 @@
       "name": "guided-learning",
       "source": "./plugins/guided-learning",
       "description": "Learning coach for course task lists: visual explainers, hint ladder, control questions one at a time, and a /task-check against each task's Verified result."
+    },
+    {
+      "name": "embedded-agents",
+      "source": "./plugins/embedded-agents",
+      "description": "Subagent team for embedded learning and projects: ESP-IDF librarian, firmware engineer, embedded C reviewer, bench camera eye, multimeter technician, build/flash operator, lesson author, examiner with spaced recall, project architect."
     }
   ]
 }

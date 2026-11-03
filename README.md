@@ -6,6 +6,7 @@ Reusable [Claude Code](https://claude.com/claude-code) skills from Beetroot Acad
 |---|---|
 | [`wiring-docs`](plugins/wiring-docs/skills/wiring-docs/SKILL.md) | Reads the pins from your code and makes **a wiring picture for the README** (`docs/wiring.svg`) and **a Wokwi simulator project** (`diagram.json`, `wokwi.toml`). It puts your code in a wokwi.com project that runs when anyone presses ▶, tests every mode and adds a "Simulate" badge to the README. |
 | [`guided-learning`](plugins/guided-learning/skills/guided-learning/SKILL.md) | A **learning coach** for course task lists (T01, T02, …). It explains each task with an interactive visual page, gives hints step by step instead of ready answers, coaches debugging, and asks the control questions one at a time. It also adds **`/task-check T07`**, which checks a task against its "Verified result" and lists what is still open. |
+| [`embedded-agents`](plugins/embedded-agents/README.md) | A **team of subagents** the coach delegates to: ESP-IDF source librarian, firmware engineer, embedded C reviewer, bench camera eye, multimeter technician, build/flash/monitor operator, lesson author, examiner with spaced recall, and a project architect. Each one returns a short report with evidence; the coach teaches from it. |
 
 Example result: [Lesson 1.3 — Police siren](https://github.com/eoffers51/Lesson_1_3_Blink#-wiring) · [its Wokwi project](https://wokwi.com/projects/477675527233048577)
 
@@ -19,6 +20,7 @@ In Claude Code (any project):
 /plugin marketplace add eoffers51/claude-skills
 /plugin install wiring-docs@beetroot-esp32
 /plugin install guided-learning@beetroot-esp32
+/plugin install embedded-agents@beetroot-esp32
 ```
 
 Update later with `/plugin marketplace update beetroot-esp32`.
@@ -90,6 +92,7 @@ plugins/<plugin>/skills/<skill>/SKILL.md   the instructions Claude follows
                          reference/        details loaded only when needed
                          templates/        example files to start from
                          scripts/          helper scripts
+plugins/<plugin>/agents/<agent>.md         subagent definitions (frontmatter + prompt)
 ```
 
 To add a skill: create `plugins/<name>/` the same way, add it to `marketplace.json`, bump the versions, and check with `claude plugin validate .`.
