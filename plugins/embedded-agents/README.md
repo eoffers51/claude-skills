@@ -64,7 +64,7 @@ A new project starts with `project-architect`, then runs the same loop per task.
 
 - Subagents start cold and cannot talk to the user mid-run, so teaching stays in the main session.
 - Every agent returns a fixed report block (verdict, evidence, confidence) and little prose. The coach quotes the evidence when it teaches.
-- Read-only by default. Only the engineer, the lesson author and the two log writers (meter-tech, examiner) can write, and each is told exactly which files.
+- Read-only by default. Only the engineer, the lesson author and the two log writers (meter-tech, examiner) can write project files, and each is told exactly which files. Agents with `memory` keep Write/Edit available (the memory feature needs them) and are told to use them only on their own notes; a `disallowedTools: Write, Edit` line would silently break memory.
 - `memory: user` lets the agents keep notes across sessions in `~/.claude/agent-memory/<agent>/`, in your home folder and never inside a repo. Do not switch this to `project` on public repos: the notes are model-written and can contain local paths (photo folders, log files) that carry your Windows user name. If you ever do, add `.claude/agent-memory/` to the repo's `.gitignore` first.
 - Plugin agents ignore `hooks`, `mcpServers` and `permissionMode` in their frontmatter; permissions come from the project's settings.
 - Models: `fable` only for the coach and the architect, `opus` for code, review, vision and teaching material, `sonnet` for procedure-driven tool work, `haiku` for bookkeeping. Change the `model:` line in an agent file to re-tune.
