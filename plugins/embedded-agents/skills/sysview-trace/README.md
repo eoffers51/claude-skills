@@ -1,13 +1,13 @@
-# Add SEGGER SystemView to an ESP-IDF project
+# Record a SEGGER SystemView trace of an ESP-IDF project
 
-A checklist for people. It shows your FreeRTOS tasks **live** in SystemView: which task runs when, how often, and how much CPU it uses. It takes about 10 minutes, and your normal build stays exactly as it is.
+A checklist for people. It records which FreeRTOS task runs when, how often, and how much CPU it uses, and shows it in SystemView. Only Espressif's and SEGGER's own tools are used, the way their documentation shows. It takes about 10 minutes, and your normal build stays exactly as it is.
 
 **You need:**
 - ESP-IDF **v6.x** (for v5.x see IDF's `examples/system/sysview_tracing`).
-- A board with a **USB-UART chip** (CP210x, CH34x, …), the "COM" port.
-- [SEGGER SystemView](https://www.segger.com/products/development-tools/systemview/) installed (free for non-commercial use).
+- A JTAG link: on ESP32-S3/C3/C5/C6/H2/P4 the board's **native USB** port (built-in USB-JTAG); on ESP32/S2 an ESP-Prog or similar probe. Plus the usual USB-UART port for flashing.
+- [SEGGER SystemView](https://www.segger.com/products/development-tools/systemview/) **3.60 or newer** installed (free for non-commercial use).
 
-In the commands, `$S` is this folder (`skills/sysview-trace`) and `COM5` is your board's port. Run them from your **project root**, in a PowerShell with the ESP-IDF environment active.
+In the commands, `$S` is this folder (`skills/sysview-trace`), `COM5` is your board's USB-UART port and `esp32s3` your chip. Run them from your **project root**, in a PowerShell with the ESP-IDF environment active.
 
 ```powershell
 $S = "<path to>\claude-skills\plugins\embedded-agents\skills\sysview-trace"
@@ -16,74 +16,36 @@ $S = "<path to>\claude-skills\plugins\embedded-agents\skills\sysview-trace"
 ## 1. Copy four files
 
 ```powershell
-Copy-Item $S\templates\sdkconfig.sysview_uart .
-Copy-Item $S\templates\trace_params.c main\
-New-Item -ItemType Directory -Force tools | Out-Null
-Copy-Item $S\scripts\sysview_bridge.py tools\
+Copy-Item $S\templates\sdkconfig.sysview_jtag .
+Copy-Item $S\templates\sysview_jtag.args .
+Copy-Item $S\templates\gdbinit .
 Copy-Item $S\templates\idf_component.yml main\   # if main\idf_component.yml exists, merge the esp_sysview entry instead
 ```
 
-## 2. Set your chip and its UART pins
+ESP-IDF **v6.1 or newer**? In `main\idf_component.yml` change the `esp_sysview` version from `"~1.0.2"` to `"^1.1"` (1.1.x does not compile on v6.0.x).
 
-Open `sdkconfig.sysview_uart` and set:
-- `CONFIG_IDF_TARGET` to your chip (`"esp32s3"`, `"esp32c3"`, …).
-- `CONFIG_APPTRACE_UART_TX_GPIO` / `RX_GPIO` to that chip's **UART0** pins.
+## 2. Set your chip
 
-The template has the ESP32-S3 values.
+Open `sdkconfig.sysview_jtag` and set `CONFIG_IDF_TARGET` to your chip (`"esp32s3"`, `"esp32c3"`, …). The template has `esp32s3`.
 
-| Chip | TX | RX |
-|---|---|---|
-| ESP32 | 1 | 3 |
-| ESP32-S2 / S3 | 43 | 44 |
-| ESP32-C3 | 21 | 20 |
-| ESP32-C6 | 16 | 17 |
-| ESP32-H2 | 24 | 23 |
-| ESP32-P4 | 37 | 38 |
+## 3. Paste one function into your main file
 
-## 3. Edit `main/CMakeLists.txt`
-
-Put the sources and requirements in variables and add the `if` block. For a new project, the whole file looks like this (use your own source names and requirements):
-
-```cmake
-set(srcs "main.c")
-set(priv_requires "")
-set(extra_args "")
-
-# SystemView trace build only: tell esp_trace which encoder to open (trace_params.c).
-# WHOLE_ARCHIVE is needed, or the linker skips trace_params.c (IDF has a weak default).
-if(CONFIG_ESP_TRACE_LIB_EXTERNAL)
-    list(APPEND srcs "trace_params.c")
-    list(APPEND priv_requires esp_trace)
-    list(APPEND extra_args WHOLE_ARCHIVE)
-endif()
-
-idf_component_register(SRCS ${srcs}
-                       PRIV_REQUIRES ${priv_requires}
-                       ${extra_args})
-```
-
-Optional, only if you use **more than one build folder**: in the root `CMakeLists.txt`, add this line between `include(...project.cmake)` and `project(...)` so each folder keeps its own `dependencies.lock`:
-
-```cmake
-idf_build_set_property(DEPENDENCIES_LOCK "${CMAKE_BINARY_DIR}/dependencies.lock")
-```
-
-Add `build_live/` to `.gitignore`.
+Open `$S\templates\sysview_user_params.c` and paste its contents into the source file that has `app_main` (for example at the end of `main.c`). It tells ESP-IDF to use the SystemView encoder and is the same function as in ESP-IDF's `sysview_tracing` example. It is wrapped in `#if CONFIG_ESP_TRACE_LIB_EXTERNAL`, so your normal build does not change. No `CMakeLists.txt` edits.
 
 ## 4. Build and flash the trace firmware
 
-The trace firmware goes into its own folder `build_live/`. `build/` and your `sdkconfig` are not touched.
+The trace firmware goes into its own folder `build_trace/`. `build/` and your `sdkconfig` are not touched. The three `idf.py` options it needs are in `sysview_jtag.args`, and `idf.py` reads them from there:
 
 ```powershell
-$T = @("-B", "build_live", "-D", "SDKCONFIG=build_live/sdkconfig", "-D", "SDKCONFIG_DEFAULTS=sdkconfig.sysview_uart")
-idf.py @T build
-idf.py @T -p COM5 flash
+idf.py @sysview_jtag.args build
+idf.py @sysview_jtag.args -p COM5 flash
 ```
 
+- `idf.py` prints `Running: idf.py -B build_trace -D SDKCONFIG=... build` first. If you don't see that line, the `@` file was not picked up and you just built your normal firmware.
 - The first build downloads `esp_sysview` and prints `unknown kconfig symbol 'SEGGER_SYSVIEW_...'` notes. That's normal. If it stops with *"Re-run the build process"*, run the same `build` command again.
-- If your project has a `sdkconfig.defaults`, list it first: `"SDKCONFIG_DEFAULTS=sdkconfig.defaults;sdkconfig.sysview_uart"`.
-- Always pass all of `$T`. `idf.py -B build_live` **without** the `-D` options silently builds your normal firmware.
-- After you change `sdkconfig.sysview_uart`, delete `build_live\sdkconfig` before building again.
+- If your project has a `sdkconfig.defaults`, edit the last line of `sysview_jtag.args` to `-D SDKCONFIG_DEFAULTS=sdkconfig.defaults;sdkconfig.sysview_jtag`.
+- After you change `sdkconfig.sysview_jtag`, delete `build_trace\sdkconfig` before building again.
+- Add `build_trace/` and `*.SVDat` to `.gitignore`.
 
 ## 5. Prepare SystemView (once per PC)
 
@@ -95,25 +57,46 @@ Copy-Item "$d\SYSVIEW_FreeRTOS.txt" "$d\SYSVIEW_FreeRTOS.txt.segger-original"
 Copy-Item "$env:IDF_PATH\tools\esp_app_trace\SYSVIEW_FreeRTOS.txt" "$d\SYSVIEW_FreeRTOS.txt" -Force
 ```
 
-## 6. Watch it live
+## 6. Record
+
+Connect both USB cables. Two PowerShell windows with the ESP-IDF environment, both in the project root.
+
+Window 1, OpenOCD:
 
 ```powershell
-python tools/sysview_bridge.py --port COM5
+idf.py @sysview_jtag.args openocd
 ```
 
-In SystemView:
-1. **Target → Recorder Configuration** → **IP**, address `127.0.0.1`, port `19111`.
-2. **Target → Start Recording** (`F5`).
+Window 2, GDB with the prepared script. It restarts the chip, stops at `app_main`, starts the recording into `build_trace\trace.SVDat` and lets the program run:
 
-The bridge holds COM5 until you press `Ctrl+C`, so stop it before you flash.
+```powershell
+xtensa-esp32s3-elf-gdb -x gdbinit build_trace\<your_project>.elf     # riscv32-esp-elf-gdb on C3/C6/H2/P4
+```
 
-## 7. Read the result
+Let it run for as long as you want to see (5 to 30 seconds), then in GDB press `Ctrl+C` and type:
+
+```
+mon esp sysview_mcore stop
+quit
+```
+
+Stop OpenOCD with `Ctrl+C`.
+
+Windows, first time with the built-in USB-JTAG: if OpenOCD says `libusb_open() failed with LIBUSB_ERROR_NOT_FOUND`, install Espressif's driver (administrator PowerShell), then unplug and replug the native USB cable:
+
+```powershell
+Invoke-WebRequest 'https://dl.espressif.com/dl/idf-env/idf-env.exe' -OutFile .\idf-env.exe; .\idf-env.exe driver install --espressif
+```
+
+## 7. Look at it
+
+SystemView: **File → Load Data** (`Ctrl+O`) → `build_trace\trace.SVDat`. (SystemView ignores a file given on its command line.)
 
 - **Context** window: click **Activations** to sort. Your tasks, `Idle` and the tick come first. The many rows with 0 activations are just every interrupt the chip has; untick them.
 - **The tick** is `SYSTIMER_TARGET0` (the hardware timer) with `SysTick` (FreeRTOS's handler) inside it, `CONFIG_FREERTOS_HZ` times a second.
 - **A periodic task** should have about *recording time ÷ period* activations.
 - **Timeline**: zoom out past your slowest task's period, or its row looks empty.
-- **Run times include tracing overhead.** Each event goes out at 1 Mbaud, so a tiny task shows about 0.2 ms. Counts and intervals are exact.
+- **Run times include a little tracing overhead.** Counts and intervals are exact.
 
 ## 8. Back to normal
 
@@ -121,15 +104,8 @@ The bridge holds COM5 until you press `Ctrl+C`, so stop it before you flash.
 idf.py -p COM5 flash
 ```
 
-## What changes in the trace build
+## Why no live view?
 
-| Setting | Why |
-|---|---|
-| Trace on UART0, 1 Mbaud | The trace uses the same USB cable as flashing |
-| Console and logging off | COM5 now carries the trace. Logging is also turned off because formatting log lines would still cost ~1 ms per line in your tasks |
-| FreeRTOS on core 0 only | Over UART SystemView sees one core; this way no task is missing |
-| `trace_params.c` | IDF asks for a trace encoder called `"ext"`, esp_sysview registers `"sysview"`; without it the firmware aborts at boot |
-| `esp_sysview ~1.0.2` | 1.1.x doesn't compile with ESP-IDF v6.0.x |
-| The bridge | SystemView's own UART recorder fails with *"Error while recording"*; the bridge does its handshake and connects SystemView's IP recorder to COM5 |
+Espressif's guide mentions real-time viewing over UART, but SystemView's UART recorder needs a handshake that the `esp_sysview` component does not send, so it stops with *"Error while recording"*. Making it work needs extra software that is not part of ESP-IDF or SystemView, so this checklist records over JTAG instead: same information, all cores, a few seconds later.
 
-Problems: [`reference/troubleshooting.md`](reference/troubleshooting.md). Recording both cores over JTAG instead: [`SKILL.md`](SKILL.md), step 6b.
+Problems: [`reference/troubleshooting.md`](reference/troubleshooting.md).

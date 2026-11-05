@@ -1,23 +1,27 @@
-# SEGGER SystemView recorded over JTAG (all cores, to a .SVDat file).
-# On ESP32-S3/C3/C6/H2/P4 the chip's built-in USB-JTAG (native USB port) works;
-# connect it AND the USB-UART port (flashing, serial log stays on).
-# Build in its own folder, together with the project's own defaults (if any):
-#   idf.py -B build_trace -D SDKCONFIG=build_trace/sdkconfig -D "SDKCONFIG_DEFAULTS=sdkconfig.defaults;sdkconfig.sysview_jtag" build
-# Record with scripts/sysview_capture.ps1, open with SystemView File > Load Data.
+# SEGGER SystemView recorded over JTAG (all cores, one .SVDat file).
+# On ESP32-S3/C3/C5/C6/H2/P4 the chip's built-in USB-JTAG (native USB port) is the
+# JTAG link; plain ESP32/S2 need an external probe (ESP-Prog, ESP-WROVER-KIT).
+# Connect it AND the USB-UART port (flashing; the serial log stays on).
+# Build in its own folder. The idf.py options for that folder are in sysview_jtag.args:
+#   idf.py @sysview_jtag.args build
+#   idf.py @sysview_jtag.args -p COM5 flash
+# Record with OpenOCD + GDB (templates/gdbinit), open with SystemView File > Load Data.
+# Same options as ESP-IDF's examples/system/sysview_tracing (sdkconfig.defaults +
+# sdkconfig.ci.sysview_jtag).
 
-# YOUR CHIP. A fresh clone has no sdkconfig, and without this line the trace
-# build would default to plain esp32.
+# YOUR CHIP. The trace build folder starts without an sdkconfig, and without this
+# line it would default to plain esp32.
 CONFIG_IDF_TARGET="esp32s3"
 
-# Tracing on, over JTAG, with the SystemView library (esp_sysview).
+# Tracing on, over apptrace/JTAG, with the SystemView library (esp_sysview).
 CONFIG_ESP_TRACE_ENABLE=y
-CONFIG_ESP_TRACE_TRANSPORT_APPTRACE=y
 CONFIG_ESP_TRACE_LIB_EXTERNAL=y
+CONFIG_ESP_TRACE_TRANSPORT_APPTRACE=y
 CONFIG_APPTRACE_DEST_JTAG=y
 # Event timestamps from esp_timer (1 us), the same clock as esp_timer_get_time().
 CONFIG_ESP_TRACE_TS_SOURCE_ESP_TIMER=y
 
-# Which FreeRTOS events are recorded.
+# Which FreeRTOS events are recorded (the full set, as in the example).
 CONFIG_SEGGER_SYSVIEW_EVT_OVERFLOW_ENABLE=y
 CONFIG_SEGGER_SYSVIEW_EVT_ISR_ENTER_ENABLE=y
 CONFIG_SEGGER_SYSVIEW_EVT_ISR_EXIT_ENABLE=y

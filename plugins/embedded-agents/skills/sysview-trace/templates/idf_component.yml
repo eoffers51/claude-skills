@@ -5,8 +5,12 @@ dependencies:
   # SEGGER SystemView. Downloaded only when a trace build turns the external
   # trace library on (sdkconfig.sysview_uart / sdkconfig.sysview_jtag), so the
   # normal build doesn't need it.
-  # ~1.0.2 for ESP-IDF v6.0.x: 1.1.x needs a newer esp_trace API (encoder
-  # `flush` hook) and doesn't compile there. On a newer IDF try "^1".
+  # Version rule (the registry lists ">=6.0" for every version, but):
+  #   ESP-IDF v6.0.x -> "~1.0.2"  1.1.x needs the encoder `flush` hook that esp_trace
+  #                               only has from v6.1; on v6.0.x it fails to compile with
+  #                               "'esp_trace_encoder_vtable_t' has no member named 'flush'".
+  #   ESP-IDF v6.1+  -> "^1.1"    task-context flush, -O2 for the trace code, the UART
+  #                               "CPU to trace" option honoured, function tracing.
   espressif/esp_sysview:
     version: "~1.0.2"
     rules:
