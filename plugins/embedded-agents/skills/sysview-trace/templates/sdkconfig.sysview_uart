@@ -6,6 +6,10 @@
 # - The COM port carries the trace, so the console and logging are OFF.
 # - Over UART SystemView sees one core, so this build runs FreeRTOS on core 0 only.
 
+# YOUR CHIP. A fresh clone has no sdkconfig, and without this line the trace
+# build would default to plain esp32.
+CONFIG_IDF_TARGET="esp32s3"
+
 # Tracing on, through ESP-IDF apptrace, with the SystemView library (esp_sysview).
 CONFIG_ESP_TRACE_ENABLE=y
 CONFIG_ESP_TRACE_TRANSPORT_APPTRACE=y

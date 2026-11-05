@@ -52,8 +52,8 @@ If the project's `main` is a single file, putting the function in that file (gua
 ## 3. The sdkconfig fragment
 
 Copy one template to the project root:
-- live: `templates/sdkconfig.sysview_uart`. **Set `CONFIG_APPTRACE_UART_TX_GPIO` / `RX_GPIO` to the chip's UART0 pins** (table in step 0).
-- record: `templates/sdkconfig.sysview_jtag`.
+- live: `templates/sdkconfig.sysview_uart`. **Set `CONFIG_IDF_TARGET` and `CONFIG_APPTRACE_UART_TX_GPIO` / `RX_GPIO` to the chip and its UART0 pins** (table in step 0).
+- record: `templates/sdkconfig.sysview_jtag` (set `CONFIG_IDF_TARGET`).
 
 What the live fragment does and why:
 - `ESP_TRACE_ENABLE` + `ESP_TRACE_TRANSPORT_APPTRACE` + `ESP_TRACE_LIB_EXTERNAL`: tracing on, through apptrace, with the SystemView library from the component.
@@ -63,7 +63,9 @@ What the live fragment does and why:
 - `FREERTOS_UNICORE`: over UART SystemView traces one core. Running everything on core 0 means no task is missing from the view. (Alternative for dual-core apps: keep both cores and pick the traced CPU in *SEGGER SystemView Configuration*; tasks on the other core are then invisible.)
 - `SEGGER_SYSVIEW_EVT_*`: task start/stop/ready, ISR enter/exit, idle, timers.
 
-These options belong to the component, so they only exist after it is downloaded. The first build prints `unknown kconfig symbol 'SEGGER_SYSVIEW_EVT_...'` and stops with *"Re-run the build process"*: run the same command again.
+These options belong to the component, so they only exist after it is downloaded. The first build prints `unknown kconfig symbol 'SEGGER_SYSVIEW_EVT_...'` while it downloads the component. Usually it then re-configures and finishes by itself; if it stops with *"Re-run the build process"* (exit code 255), run the same command again.
+
+The fragment also sets `CONFIG_IDF_TARGET`: a fresh clone has no root `sdkconfig`, and the trace folder would otherwise default to plain `esp32`.
 
 ## 4. Build in its own folder
 
@@ -146,4 +148,4 @@ The device must then show driver provider `libwdi`, not `Microsoft`.
 - Flash the normal firmware again (`idf.py -p COM5 flash`) so the serial log is back.
 - Keep in the repo: the fragment, `trace_params.c`, the CMake snippet, `idf_component.yml`, the bridge (and the capture script if JTAG is used), plus a README section with the two commands and the SystemView steps. Never commit `build_live/`, `build_trace/`, `.SVDat` files or `managed_components/`.
 
-More symptoms and fixes: `reference/troubleshooting.md`.
+More symptoms and fixes: `reference/troubleshooting.md`. A checklist for people (same steps, copy-paste commands): `README.md`.

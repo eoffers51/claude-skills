@@ -5,6 +5,10 @@
 #   idf.py -B build_trace -D SDKCONFIG=build_trace/sdkconfig -D "SDKCONFIG_DEFAULTS=sdkconfig.defaults;sdkconfig.sysview_jtag" build
 # Record with scripts/sysview_capture.ps1, open with SystemView File > Load Data.
 
+# YOUR CHIP. A fresh clone has no sdkconfig, and without this line the trace
+# build would default to plain esp32.
+CONFIG_IDF_TARGET="esp32s3"
+
 # Tracing on, over JTAG, with the SystemView library (esp_sysview).
 CONFIG_ESP_TRACE_ENABLE=y
 CONFIG_ESP_TRACE_TRANSPORT_APPTRACE=y

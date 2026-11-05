@@ -1,7 +1,7 @@
 {
   "name": "embedded-agents",
   "description": "A team of subagents for learning and building embedded projects: ESP-IDF source librarian, firmware engineer, embedded C reviewer, bench camera eye, multimeter technician, build/flash/monitor operator, lesson author, examiner with spaced recall, and a project architect. The coach (guided-learning) stays in the main session and delegates to them. Includes the sysview-trace skill: SEGGER SystemView task timelines for any ESP-IDF v6 FreeRTOS project, live over the COM port or recorded over JTAG.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": {
     "name": "eoffers51"
   },
