@@ -70,3 +70,7 @@ Steps:
 ## 4. `docs/wiring.svg` (wiring picture)
 
 Every project with external parts gets a wiring picture made with the `wiring-docs` skill as soon as the pins are fixed, shown in the README under **Wiring**. Keep it in sync with the pins in the code; update it in the same commit that changes a pin.
+
+## 5. Online Wokwi link
+
+The README has a `simulate-Wokwi` badge and a **Simulate in Wokwi** section linking to a saved wokwi.com project that runs the repo's code on ▶ in the browser (no upload, no hardware). Made with the `wiring-docs` skill once the first working firmware is pushed; re-synced when the firmware or the wiring changes.

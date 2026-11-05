@@ -14,6 +14,8 @@ Turns "what's wired where" into three things that stay in the repo:
 | `wokwi/` | Wokwi-only glue files so the repo's code compiles on wokwi.com (Arduino-core build) |
 | README section + badge | Picture and a link to a saved Wokwi project that runs on ▶ |
 
+**Every academy project gets the online link**, not only the local `diagram.json`: anyone opening the README must be able to run the circuit in the browser. Do step 4 whenever the project has working firmware, and ask the user before saving (free-plan projects are public).
+
 Proven on ESP-IDF v6 / ESP32-S3-DevKitC-1, but the steps work for any board Wokwi supports (ESP32, ESP32-C3/C6/S2/S3, Pico, Arduino...).
 
 ## 1. Collect the real wiring (don't guess)

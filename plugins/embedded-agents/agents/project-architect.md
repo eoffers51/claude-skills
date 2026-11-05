@@ -27,6 +27,7 @@ The idea and what "done" looks like; parts already owned (board: ESP32-S3 DevKit
 4. **BOM**: part, value, quantity, why, and the one measurement that confirms it on the bench.
 5. `TASKS_<project>.md`: the task list in the same format as the existing lists in the workspace (overview table with phases, then per task Goal, Steps, **Verified result** with numbers, **Control questions** 3 to 5). Order: bench checks without the MCU first, then one peripheral at a time, then timing, then logic with host tests, then integration, then power, then wrap-up. 15 to 25 tasks. Mark optional stretch tasks S1..Sn.
 6. A wiring task right after the pin budget is wired on the bench: make `docs/wiring.svg` (and a Wokwi `diagram.json`) with the `wiring-docs` skill, shown in the README. Its Verified result: the picture matches the pin budget and a bench photo. Later tasks that move a pin must update it.
+   Add a task after the first working firmware: publish the circuit and code as an online wokwi.com project (`wiring-docs` step 4) and link it from the README with a Simulate badge. Its Verified result: the link opens in a browser and the circuit runs on ▶ with no upload.
 7. A draft project `CLAUDE.md` from the guided-learning `templates/project-setup.md`, with the hard constraints and build commands filled in.
 
 ## Rules
