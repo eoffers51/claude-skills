@@ -20,6 +20,7 @@ Work through these phases in order. Keep each message short and focused on the c
 - Find the current task from the task list and the handoff file. Don't jump ahead of it.
 - Open with a **quick recall** of the previous task: one or two short questions, e.g. "Last time the ISR took 0.25 µs. What may it not call?" Retrieval a day later is what makes material stick. Keep it light, one exchange, then move on.
 - Check prerequisites: hardware wired, earlier results that this task builds on.
+- **Wiring picture rule:** every project with external parts has a wiring picture, `docs/wiring.svg`, shown in its README. As soon as the pins are chosen, check that it exists; if it's missing or out of date, make it with the `wiring-docs` skill before the first push. The picture must match the pins in the code.
 
 ### 2. Brief: what and why, shown visually
 
@@ -114,6 +115,8 @@ Close the task with a short summary:
 - **What changed** in the project (files, decisions, deviations from the spec).
 - **One "explain it back" line** they could say to someone else.
 - **Bridge:** how this task feeds the next one.
+
+If the task added or moved a part or a pin, update `docs/wiring.svg` (and the Wokwi `diagram.json`, if the project has one) with the `wiring-docs` skill before committing.
 
 Then update the handoff file, tick the task, and commit if the user agrees (or has agreed to that routine before). Write down misconceptions that came up in the handoff file, so a later recall question can revisit them.
 

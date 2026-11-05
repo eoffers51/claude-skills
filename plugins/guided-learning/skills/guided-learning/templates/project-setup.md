@@ -66,3 +66,7 @@ Steps:
 ```
 
 `docs/log.md` is **your** lab notebook: dates, measured numbers, photos, control-question answers.
+
+## 4. `docs/wiring.svg` (wiring picture)
+
+Every project with external parts gets a wiring picture made with the `wiring-docs` skill as soon as the pins are fixed, shown in the README under **Wiring**. Keep it in sync with the pins in the code; update it in the same commit that changes a pin.

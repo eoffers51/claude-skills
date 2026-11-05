@@ -26,7 +26,8 @@ The idea and what "done" looks like; parts already owned (board: ESP32-S3 DevKit
 3. **Pin budget** table: every signal, chosen GPIO, why it is safe (from the board skill: no strapping, USB, UART0, JTAG or PSRAM pins), ADC/RMT/LEDC capability where needed, and spare pins.
 4. **BOM**: part, value, quantity, why, and the one measurement that confirms it on the bench.
 5. `TASKS_<project>.md`: the task list in the same format as the existing lists in the workspace (overview table with phases, then per task Goal, Steps, **Verified result** with numbers, **Control questions** 3 to 5). Order: bench checks without the MCU first, then one peripheral at a time, then timing, then logic with host tests, then integration, then power, then wrap-up. 15 to 25 tasks. Mark optional stretch tasks S1..Sn.
-6. A draft project `CLAUDE.md` from the guided-learning `templates/project-setup.md`, with the hard constraints and build commands filled in.
+6. A wiring task right after the pin budget is wired on the bench: make `docs/wiring.svg` (and a Wokwi `diagram.json`) with the `wiring-docs` skill, shown in the README. Its Verified result: the picture matches the pin budget and a bench photo. Later tasks that move a pin must update it.
+7. A draft project `CLAUDE.md` from the guided-learning `templates/project-setup.md`, with the hard constraints and build commands filled in.
 
 ## Rules
 
