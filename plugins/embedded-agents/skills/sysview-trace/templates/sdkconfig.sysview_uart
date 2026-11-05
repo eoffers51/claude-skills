@@ -1,0 +1,48 @@
+# LIVE SEGGER SystemView over UART0 -> the board's USB-UART bridge (COM port).
+# SystemView connects through tools/sysview_bridge.py (its IP recorder, 127.0.0.1:19111).
+# Build in its own folder, together with the project's own defaults (if any):
+#   idf.py -B build_live -D SDKCONFIG=build_live/sdkconfig -D "SDKCONFIG_DEFAULTS=sdkconfig.defaults;sdkconfig.sysview_uart" build
+#
+# - The COM port carries the trace, so the console and logging are OFF.
+# - Over UART SystemView sees one core, so this build runs FreeRTOS on core 0 only.
+
+# Tracing on, through ESP-IDF apptrace, with the SystemView library (esp_sysview).
+CONFIG_ESP_TRACE_ENABLE=y
+CONFIG_ESP_TRACE_TRANSPORT_APPTRACE=y
+CONFIG_ESP_TRACE_LIB_EXTERNAL=y
+# Event timestamps from esp_timer (1 us), the same clock as esp_timer_get_time().
+CONFIG_ESP_TRACE_TS_SOURCE_ESP_TIMER=y
+
+# Trace out of UART0 at 1 Mbaud. RX is used too: SystemView sends commands (START).
+# SET THE PINS FOR YOUR CHIP (UART0 TX/RX): ESP32 1/3, S2/S3 43/44, C3 21/20,
+# C6 16/17, H2 24/23, P4 37/38.
+CONFIG_APPTRACE_DEST_UART=y
+CONFIG_APPTRACE_DEST_UART_NUM=0
+CONFIG_APPTRACE_UART_TX_GPIO=43
+CONFIG_APPTRACE_UART_RX_GPIO=44
+CONFIG_APPTRACE_UART_BAUDRATE=1000000
+
+# UART0 belongs to the trace now.
+CONFIG_ESP_CONSOLE_NONE=y
+# No console means logs go nowhere, but ESP_LOGx would still format each line
+# and take the log lock (xQueueGenericSend/Receive in your tasks, ~1 ms per log).
+CONFIG_LOG_DEFAULT_LEVEL_NONE=y
+CONFIG_BOOTLOADER_LOG_LEVEL_NONE=y
+
+# One core, so the single-core UART trace shows every task.
+CONFIG_FREERTOS_UNICORE=y
+
+# Which FreeRTOS events are recorded.
+CONFIG_SEGGER_SYSVIEW_EVT_OVERFLOW_ENABLE=y
+CONFIG_SEGGER_SYSVIEW_EVT_ISR_ENTER_ENABLE=y
+CONFIG_SEGGER_SYSVIEW_EVT_ISR_EXIT_ENABLE=y
+CONFIG_SEGGER_SYSVIEW_EVT_ISR_TO_SCHED_ENABLE=y
+CONFIG_SEGGER_SYSVIEW_EVT_TASK_START_EXEC_ENABLE=y
+CONFIG_SEGGER_SYSVIEW_EVT_TASK_STOP_EXEC_ENABLE=y
+CONFIG_SEGGER_SYSVIEW_EVT_TASK_START_READY_ENABLE=y
+CONFIG_SEGGER_SYSVIEW_EVT_TASK_STOP_READY_ENABLE=y
+CONFIG_SEGGER_SYSVIEW_EVT_TASK_CREATE_ENABLE=y
+CONFIG_SEGGER_SYSVIEW_EVT_TASK_TERMINATE_ENABLE=y
+CONFIG_SEGGER_SYSVIEW_EVT_IDLE_ENABLE=y
+CONFIG_SEGGER_SYSVIEW_EVT_TIMER_ENTER_ENABLE=y
+CONFIG_SEGGER_SYSVIEW_EVT_TIMER_EXIT_ENABLE=y

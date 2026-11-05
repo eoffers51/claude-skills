@@ -1,0 +1,13 @@
+## Merge into the app component's idf_component.yml (usually main/idf_component.yml).
+dependencies:
+  idf:
+    version: ">=6.0"
+  # SEGGER SystemView. Downloaded only when a trace build turns the external
+  # trace library on (sdkconfig.sysview_uart / sdkconfig.sysview_jtag), so the
+  # normal build doesn't need it.
+  # ~1.0.2 for ESP-IDF v6.0.x: 1.1.x needs a newer esp_trace API (encoder
+  # `flush` hook) and doesn't compile there. On a newer IDF try "^1".
+  espressif/esp_sysview:
+    version: "~1.0.2"
+    rules:
+      - if: "$CONFIG{ESP_TRACE_LIB_EXTERNAL} == True"

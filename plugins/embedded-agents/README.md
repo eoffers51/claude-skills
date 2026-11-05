@@ -14,6 +14,12 @@ A team of Claude Code subagents for learning embedded development and building r
 | `examiner` | Recall questions due, task-check, SESSION_LOG, spaced-repetition bank in `docs/recall.md` | haiku | logs |
 | `project-architect` | New project: spec, ADRs, pin budget, BOM, T01..Tnn task list | fable | plan files |
 
+## Skills
+
+| Skill | Does |
+|---|---|
+| [`sysview-trace`](skills/sysview-trace/SKILL.md) | Adds SEGGER SystemView to any ESP-IDF v6 FreeRTOS project in a separate build folder: **live** task timeline over the board's COM port (with a small bridge, since SystemView's UART recorder can't talk to ESP-IDF directly) or a **JTAG** recording of all cores. Ships the sdkconfig fragments, the `esp_sysview` dependency, the boot fix (`trace_params.c`), the bridge and capture scripts, and a [troubleshooting table](skills/sysview-trace/reference/troubleshooting.md) from a real bring-up. Ask "trace my tasks" or run `/sysview-trace`. |
+
 ## Install
 
 ```text
