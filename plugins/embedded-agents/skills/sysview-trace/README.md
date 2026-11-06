@@ -37,10 +37,11 @@ Open `$S\templates\sysview_user_params.c` and paste its contents into the source
 The trace firmware goes into its own folder `build_trace/`. `build/` and your `sdkconfig` are not touched. The three `idf.py` options it needs are in `sysview_jtag.args`, and `idf.py` reads them from there:
 
 ```powershell
-idf.py @sysview_jtag.args build
-idf.py @sysview_jtag.args -p COM5 flash
+idf.py '@sysview_jtag.args' build
+idf.py '@sysview_jtag.args' -p COM5 flash
 ```
 
+- Keep the quotes around `'@sysview_jtag.args'`: in PowerShell a bare `@name` is splatting and the line fails with *"The splatting operator '@' cannot be used ..."* before `idf.py` starts.
 - `idf.py` prints `Running: idf.py -B build_trace -D SDKCONFIG=... build` first. If you don't see that line, the `@` file was not picked up and you just built your normal firmware.
 - The first build downloads `esp_sysview` and prints `unknown kconfig symbol 'SEGGER_SYSVIEW_...'` notes. That's normal. If it stops with *"Re-run the build process"*, run the same `build` command again.
 - If your project has a `sdkconfig.defaults`, edit the last line of `sysview_jtag.args` to `-D SDKCONFIG_DEFAULTS=sdkconfig.defaults;sdkconfig.sysview_jtag`.
@@ -64,7 +65,7 @@ Connect both USB cables. Two PowerShell windows with the ESP-IDF environment, bo
 Window 1, OpenOCD:
 
 ```powershell
-idf.py @sysview_jtag.args openocd
+idf.py '@sysview_jtag.args' openocd
 ```
 
 Window 2, GDB with the prepared script. It restarts the chip through OpenOCD, waits 3 seconds for the program to boot, starts the recording into `build_trace\trace.SVDat` and leaves the program running:
