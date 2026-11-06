@@ -3,8 +3,8 @@
 # JTAG link; plain ESP32/S2 need an external probe (ESP-Prog, ESP-WROVER-KIT).
 # Connect it AND the USB-UART port (flashing; the serial log stays on).
 # Build in its own folder. The idf.py options for that folder are in sysview_jtag.args:
-#   idf.py @sysview_jtag.args build
-#   idf.py @sysview_jtag.args -p COM5 flash
+#   idf.py '@sysview_jtag.args' build
+#   idf.py '@sysview_jtag.args' -p COM5 flash
 # Record with OpenOCD + GDB (templates/gdbinit), open with SystemView File > Load Data.
 # Same options as ESP-IDF's examples/system/sysview_tracing (sdkconfig.defaults +
 # sdkconfig.ci.sysview_jtag).

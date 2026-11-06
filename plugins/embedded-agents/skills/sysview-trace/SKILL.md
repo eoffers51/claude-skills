@@ -8,7 +8,7 @@ description: Record a SEGGER SystemView trace of any ESP-IDF v6 FreeRTOS project
 Records a [SEGGER SystemView](https://www.segger.com/products/development-tools/systemview/) trace of a FreeRTOS project exactly the way Espressif documents it, without touching the project's normal build. The trace firmware is built in its own folder from the project's own sources plus one sdkconfig fragment, so `idf.py build` keeps producing the normal firmware.
 
 ```
-sdkconfig.sysview_jtag  ->  idf.py @sysview_jtag.args build/flash  ->  OpenOCD + gdb (esp sysview_mcore start/stop)  ->  trace.SVDat  ->  SystemView: File > Load Data
+sdkconfig.sysview_jtag  ->  idf.py '@sysview_jtag.args' build/flash  ->  OpenOCD + gdb (esp sysview_mcore start/stop)  ->  trace.SVDat  ->  SystemView: File > Load Data
 ```
 
 Everything here is provider tooling used as its documentation shows: the managed component `espressif/esp_sysview`, the `esp_trace` apptrace transport over JTAG, OpenOCD's `esp sysview_mcore` command, GDB to start and stop the recording at the right moment, and SystemView to read the file. The only code added to the project is the `esp_trace_get_user_params()` function from Espressif's own `sysview_tracing` example, pasted into the main source file.
@@ -72,10 +72,11 @@ The trace folder needs three `idf.py` options on **every** call (`build`, `flash
 ```
 
 ```powershell
-idf.py @sysview_jtag.args build
-idf.py @sysview_jtag.args -p COM5 flash
+idf.py '@sysview_jtag.args' build
+idf.py '@sysview_jtag.args' -p COM5 flash
 ```
 
+- **PowerShell: quote the args file**, `'@sysview_jtag.args'`. A bare `@name` is PowerShell's splatting operator and the line fails before `idf.py` runs (*"The splatting operator '@' cannot be used to reference variables in an expression"*). cmd and bash take it unquoted; the quotes work there too.
 - Project with its own `sdkconfig.defaults` (or other defaults files): make the last line `-D SDKCONFIG_DEFAULTS=sdkconfig.defaults;sdkconfig.sysview_jtag` (project files first, the trace fragment last). The file is split like a shell command line; no `#` comments.
 - Why all three: with `-B build_trace` alone, `idf.py` silently uses the root `sdkconfig` and builds the normal firmware. `idf.py` prints `Running: idf.py -B build_trace ...` when it expands the file, which is the check.
 - Changing the fragment later: delete `build_trace/sdkconfig` first. Defaults are only applied to options not yet in that file.
@@ -107,7 +108,7 @@ Two terminals with the IDF environment, both in the project root. Copy `template
 Terminal 1, OpenOCD (uses the board config from the project's settings; or run `openocd -f board/esp32s3-builtin.cfg` yourself):
 
 ```powershell
-idf.py @sysview_jtag.args openocd
+idf.py '@sysview_jtag.args' openocd
 ```
 
 Terminal 2, GDB with the script. It resets the chip through OpenOCD (`mon reset run`), waits 3 s for the app to boot and create its tasks, then starts `esp sysview_mcore` on the running app. The firmware answers START with the system description and the task list, so every task is named from the first event. The chip keeps running and GDB shows its prompt:
@@ -121,7 +122,7 @@ After the time you want to see (5 to 30 s is plenty for a lesson), at the `(gdb)
 Three things in that script are there for a reason, all seen on the bench:
 - **The reset through OpenOCD is mandatory.** Apptrace over JTAG only delivers data when the app booted while OpenOCD was attached. Attaching to an app that booted on its own (power-up, esptool's reset, the UART bridge's RTS) gives `apptrace connection is lost. Re-connect.` and `sysview: Invalid init seq len 5!` in the OpenOCD log and an empty trace. After one `reset run` under OpenOCD, recordings work until the next external reset.
 - **Start on the running app, not from a breakpoint.** ESP-IDF's example gdbinit does `mon reset halt`, `b app_main` and starts in the breakpoint's command list. On a dual-core ESP32-S3 that lost part of core 0's start sequence (three `CRC mismatch` retries right after `start`; no system-time and module-count packets in the core 0 stream) and SystemView then showed core 1 only, with `FAST`/`SLOW` at one activation and zero run time. Starting on the running app gave complete streams for both cores every time.
-- **The `1` after the file name** is the poll period in ms, which makes the command non-blocking so that `stop` works later. The guide says 1 ms is the default, but OpenOCD v0.12.0-esp32-20260424 logs `poll period 0 ms` without it, runs in blocking mode, ignores `stop` from GDB and telnet, and never writes the merged file (only `trace.SVDat_core0` / `_core1` grow). The guide says 1 ms is the default, but OpenOCD v0.12.0-esp32-20260424 logs `poll period 0 ms` without it, runs in blocking mode, ignores `stop` from GDB and telnet, and never writes the merged file (only `trace.SVDat_core0` / `_core1` grow). Variations the guide allows: `... start file://trace.SVDat 1 1000000` stops by itself after 1 MB; the same commands (`reset run`, then `esp sysview_mcore start ... 1` / `stop`) can be typed into OpenOCD's telnet port 4444 or its Tcl port 6666 without GDB.
+- **The `1` after the file name** is the poll period in ms, which makes the command non-blocking so that `stop` works later. The guide says 1 ms is the default, but OpenOCD v0.12.0-esp32-20260424 logs `poll period 0 ms` without it, runs in blocking mode, ignores `stop` from GDB and telnet, and never writes the merged file (only `trace.SVDat_core0` / `_core1` grow). Variations the guide allows: `... start file://trace.SVDat 1 1000000` stops by itself after 1 MB; the same commands (`reset run`, then `esp sysview_mcore start ... 1` / `stop`) can be typed into OpenOCD's telnet port 4444 or its Tcl port 6666 without GDB.
 
 Windows, built-in USB-JTAG only: if OpenOCD says `libusb_open() failed with LIBUSB_ERROR_NOT_FOUND`, the *USB JTAG/serial debug unit* is bound to Microsoft's generic WinUSB without a device interface GUID. Install Espressif's driver (ESP-IDF guide *Configure ESP32-S3 Built-in JTAG Interface*), administrator PowerShell, then unplug/replug the native USB cable (or remove the device in Device Manager and scan for changes):
 
