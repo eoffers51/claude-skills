@@ -67,20 +67,20 @@ Window 1, OpenOCD:
 idf.py @sysview_jtag.args openocd
 ```
 
-Window 2, GDB with the prepared script. It restarts the chip, stops at `app_main`, starts the recording into `build_trace\trace.SVDat` and lets the program run:
+Window 2, GDB with the prepared script. It restarts the chip through OpenOCD, waits 3 seconds for the program to boot, starts the recording into `build_trace\trace.SVDat` and leaves the program running:
 
 ```powershell
 xtensa-esp32s3-elf-gdb -x gdbinit build_trace\<your_project>.elf     # riscv32-esp-elf-gdb on C3/C6/H2/P4
 ```
 
-Let it run for as long as you want to see (5 to 30 seconds), then in GDB press `Ctrl+C` and type:
+Let it run for as long as you want to see (5 to 30 seconds), then at the `(gdb)` prompt type:
 
 ```
 mon esp sysview_mcore stop
 quit
 ```
 
-Stop OpenOCD with `Ctrl+C`.
+(answer `y`). Stop OpenOCD with `Ctrl+C`. The restart matters: a trace over JTAG only works when the program booted while OpenOCD was connected. If you reset the board by hand or reflash, run the GDB script again.
 
 Windows, first time with the built-in USB-JTAG: if OpenOCD says `libusb_open() failed with LIBUSB_ERROR_NOT_FOUND`, install Espressif's driver (administrator PowerShell), then unplug and replug the native USB cable:
 

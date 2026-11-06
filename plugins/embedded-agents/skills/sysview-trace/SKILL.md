@@ -110,15 +110,18 @@ Terminal 1, OpenOCD (uses the board config from the project's settings; or run `
 idf.py @sysview_jtag.args openocd
 ```
 
-Terminal 2, GDB with the script. It resets the chip, breaks at `app_main`, starts `esp sysview_mcore` and continues, so the trace also contains the task-create events:
+Terminal 2, GDB with the script. It resets the chip through OpenOCD (`mon reset run`), waits 3 s for the app to boot and create its tasks, then starts `esp sysview_mcore` on the running app. The firmware answers START with the system description and the task list, so every task is named from the first event. The chip keeps running and GDB shows its prompt:
 
 ```powershell
 xtensa-esp32s3-elf-gdb -x gdbinit build_trace\<project>.elf     # riscv32-esp-elf-gdb on C3/C6/H2/P4
 ```
 
-After the time you want to see (5 to 30 s is plenty for a lesson), in GDB: `Ctrl+C`, then `mon esp sysview_mcore stop`, then `quit`. Stop OpenOCD with `Ctrl+C`. Then in SystemView: **File → Load Data** (`Ctrl+O`) → `build_trace\trace.SVDat`. SystemView ignores a file given on its command line and opens an empty *New Recording*.
+After the time you want to see (5 to 30 s is plenty for a lesson), at the `(gdb)` prompt: `mon esp sysview_mcore stop`, then `quit` (answer `y`). Stop OpenOCD with `Ctrl+C`. Then in SystemView: **File → Load Data** (`Ctrl+O`) → `build_trace\trace.SVDat`. SystemView ignores a file given on its command line and opens an empty *New Recording*.
 
-Variations the guide allows: `esp sysview_mcore start file://... 0 -1 -1` records until stopped in blocking mode; `esp sysview_mcore start file://trace.SVDat 1 1000000` stops by itself after 1 MB; the commands can also be typed into OpenOCD's telnet port 4444 on a running system (the task list is sent at start, so no reset is required).
+Three things in that script are there for a reason, all seen on the bench:
+- **The reset through OpenOCD is mandatory.** Apptrace over JTAG only delivers data when the app booted while OpenOCD was attached. Attaching to an app that booted on its own (power-up, esptool's reset, the UART bridge's RTS) gives `apptrace connection is lost. Re-connect.` and `sysview: Invalid init seq len 5!` in the OpenOCD log and an empty trace. After one `reset run` under OpenOCD, recordings work until the next external reset.
+- **Start on the running app, not from a breakpoint.** ESP-IDF's example gdbinit does `mon reset halt`, `b app_main` and starts in the breakpoint's command list. On a dual-core ESP32-S3 that lost part of core 0's start sequence (three `CRC mismatch` retries right after `start`; no system-time and module-count packets in the core 0 stream) and SystemView then showed core 1 only, with `FAST`/`SLOW` at one activation and zero run time. Starting on the running app gave complete streams for both cores every time.
+- **The `1` after the file name** is the poll period in ms, which makes the command non-blocking so that `stop` works later. The guide says 1 ms is the default, but OpenOCD v0.12.0-esp32-20260424 logs `poll period 0 ms` without it, runs in blocking mode, ignores `stop` from GDB and telnet, and never writes the merged file (only `trace.SVDat_core0` / `_core1` grow). The guide says 1 ms is the default, but OpenOCD v0.12.0-esp32-20260424 logs `poll period 0 ms` without it, runs in blocking mode, ignores `stop` from GDB and telnet, and never writes the merged file (only `trace.SVDat_core0` / `_core1` grow). Variations the guide allows: `... start file://trace.SVDat 1 1000000` stops by itself after 1 MB; the same commands (`reset run`, then `esp sysview_mcore start ... 1` / `stop`) can be typed into OpenOCD's telnet port 4444 or its Tcl port 6666 without GDB.
 
 Windows, built-in USB-JTAG only: if OpenOCD says `libusb_open() failed with LIBUSB_ERROR_NOT_FOUND`, the *USB JTAG/serial debug unit* is bound to Microsoft's generic WinUSB without a device interface GUID. Install Espressif's driver (ESP-IDF guide *Configure ESP32-S3 Built-in JTAG Interface*), administrator PowerShell, then unplug/replug the native USB cable (or remove the device in Device Manager and scan for changes):
 
